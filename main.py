@@ -1,6 +1,7 @@
 import cv2
 import time
 from emailing import send_email
+import glob
 
 video = cv2.VideoCapture(1)
 time.sleep(1)
@@ -8,7 +9,10 @@ time.sleep(1)
 
 first_frame = None
 status_list = []
+count = 1
+
 while True:
+    #Set count to 0 for each frame that is saved
     #No object detected
     object_status = 0
     check, frame = video.read()
@@ -34,11 +38,17 @@ while True:
         if rectangle.any():
             #Object detected
             object_status = 1
+            cv2.imwrite(f"images/{count}.png", frame)
+            count = count + 1
+            all_images = glob.glob("images/*.png")
+            index = int(len(all_images)/2)
+            image_with_object = all_images[index]
+            print(image_with_object)
+
     #Add object status to the list    
     status_list.append(object_status)
     #Keep the last two statuses
     status_list = status_list[-2:]
-    print(status_list)
     #If the last two statuses are 1 and 0, then an object was detected and then it left the frame
     if status_list[0] == 1 and status_list[1] == 0:
             send_email()
